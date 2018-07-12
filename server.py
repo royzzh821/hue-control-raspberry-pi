@@ -1,5 +1,8 @@
 from bluetooth import *
 from threading import Thread
+
+from light_sensor import rc_time
+
 server_sock = BluetoothSocket(RFCOMM)
 server_sock.bind(("", PORT_ANY))
 server_sock.listen(3)
@@ -36,10 +39,19 @@ def set_light(state):
       print('No connection')
 
 class LightSensorManager(Thread):
+  def read_light(self):
+    return rc_time() > 1000
   def run(self):
-    while True:
-      # TODO
-      pass
+    light_state = self.read_light()
+    try:
+      while True:
+        new_light_state = self.read_light()
+        if new_light_state != light_state:
+          light_state = new_light_state
+          set_light(new_light_state)
+    finally:
+      GPIO.cleanup()
+LightSensorManager().start()
 
 def handle_connection(client_sock):
   data = ''
