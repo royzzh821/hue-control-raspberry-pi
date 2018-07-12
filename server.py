@@ -1,5 +1,7 @@
 from bluetooth import *
 from threading import Thread
+import RPi.GPIO as GPIO
+from qhue import Bridge
 
 from light_sensor import rc_time
 
@@ -17,6 +19,8 @@ global client_sock, light_state
 client_sock = None
 light_state = False
 light_sensor_state = False
+bridge = Bridge("192.168.1.175", "CPwFyahZcgzQ8c1pGRpG8kZz30t3Dl0HVa6j0SgO")
+light = bridge.lights[5]
 
 def set_light(state):
   global light_state
@@ -25,6 +29,7 @@ def set_light(state):
   light_state = state
   if state:
     print('On')
+    light.state(on=True)
     # TODO actually turn the light on
     if client_sock is not None:
       client_sock.send('1|')
@@ -32,6 +37,7 @@ def set_light(state):
       print('No connection')
   else:
     print('Off')
+    light.state(on=False)
     # TODO actually turn the light off
     if client_sock is not None:
       client_sock.send('0|')
